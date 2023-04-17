@@ -1,0 +1,175 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+
+var app = require("../app");
+var debug = require("debug")("awards:");
+var http = require("http");
+
+/**
+ * Get port from environment and store in Express.
+ */
+
+var port = normalizePort(process.env.PORT || 4000);
+app.set("port", port);
+
+/**
+ * Create HTTP server.
+ */
+
+var server = http.createServer(app);
+
+const mongoose = require('mongoose');
+const WebSocket = require('ws');
+const vars = require("../config/vars");
+
+const { sendMessage, getMessage, delMessage, updateMessage } = require('../controllers/message.controller');
+const { editAccount } = require("../controllers/admin.controller");
+// Buat koneksi ke database MongoDB
+mongoose.connect(vars.dbMongoDbOffline, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  useCreateIndex: true,
+  useFindAndModify: false,
+});
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+
+// Buat WebSocket server
+const wss = new WebSocket.Server({ server });
+
+// Handler untuk WebSocket connection
+wss.on('connection', async (ws) => {
+  console.log('WebSocket client connected');
+
+  // Handler untuk WebSocket message
+  ws.on('message', async (message) => {
+
+    try {
+      // Parse pesan menjadi objek JSON
+      const request = JSON.parse(message);
+
+      // Lakukan operasi CRUD sesuai permintaan
+      switch (request.action) {
+        case 'create':
+          const newData = await sendMessage(request.value);
+          wss.clients.forEach(function each(client) {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify(newData));
+            }
+          });
+        case 'read':
+          console.log("masuk ke read");
+          if (request.id) {
+            const data = await getDataById(request.id);
+            ws.send(JSON.stringify(data));
+          } else {
+            const data = await getMessage();
+            ws.send(JSON.stringify(data));
+          }
+          break;
+        case 'update':
+          const updatedData = await updateMessage(request.value);
+          wss.clients.forEach(function each(client) {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify(updatedData));
+            }
+          });
+          break;
+        case 'delete':
+          const delData = await delMessage(request.value);
+          wss.clients.forEach(function each(client) {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify(delData));
+            }
+          });
+          break;
+        case 'updateLocation':
+          const updateLocation = await editAccount(request.value);
+          wss.clients.forEach(function each(client) {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify(updateLocation));
+            }
+          });
+          break;
+        default:
+          ws.send('Invalid request');
+      }
+    } catch (error) {
+      ws.send(`Error: ${error.message}`);
+    }
+  });
+
+  // Handler untuk WebSocket close
+  ws.on('close', () => {
+    console.log('WebSocket client disconnected');
+  });
+});
+
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+server.listen(port, () => console.log(`🚀 Server on port ${port}`));
+server.on("error", onError);
+server.on("listening", onListening);
+
+
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    // named pipe
+    return val;
+  }
+
+  if (port >= 0) {
+    // port number
+    return port;
+  }
+
+  return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+  if (error.syscall !== "listen") {
+    throw error;
+  }
+
+  var bind = typeof port === "string" ? "Pipe " + port : "Port " + port;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case "EACCES":
+      console.error(bind + " requires elevated privileges");
+      process.exit(1);
+      break;
+    case "EADDRINUSE":
+      console.error(bind + " is already in use");
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
+  debug("Listening on " + bind);
+}
