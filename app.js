@@ -20,8 +20,6 @@ var v1 = require("./routes/v1");
 
 // router admin
 const adminRouter = require("./routes/admin");
-const apiRouter = require("./routes/api");
-const postRoutes = require("./routes/posts");
 
 var app = express();
 
@@ -48,16 +46,9 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: false, limit: "50mb" }));
 app.use(cookieParser());
 
-
-
-
-
 // admin
 
 app.use("/admin", adminRouter);
-app.use("/v1/customer", apiRouter);
-app.use('/posts', postRoutes);
-
 app.use(router);
 router.use("/v1", v1);
 

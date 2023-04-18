@@ -11,8 +11,6 @@ const UserModal = require("../models/user");
 const fs = require("fs-extra");
 const path = require("path");
 const bcrypt = require("bcryptjs");
-//PROLINE
-const adminModel = require("#models/admin.model");
 const helper = require("#lib/response");
 const s3 = require("#lib/s3");
 const { errorHelper, successHelper } = require("#lib/response");
@@ -183,11 +181,32 @@ const deleteAccount = async (req, res) => {
   }
 };
 
+const getItemBySearch = async (req, res) => {
+  try {
+    const minPrice = 10000;
+    const { type, maxPrice } = req.query;
+    console.log(maxPrice);
+    const types = type.split(',');
+    const items = await Item.find()
+      .populate({ path: "imageId", select: "id imageUrl" })
+      .populate({ path: "categoryId", select: "id name" })
+
+    const item = items.filter(item => types.includes(item.categoryId.name)
+      && item.price >= minPrice && item.price <= maxPrice);
+
+    res.status(200).json({
+      item,
+    });
+  } catch (error) {
+    res.status(400).json(error);
+  }
+};
+
 const viewItem = async (req, res) => {
   try {
     const { page } = req.query || 1;
     const LIMIT = 4;
-    const startIndex = (Number(page) - 1) * LIMIT; // get the starting index of every page
+    const startIndex = (Number(page) - 1) * LIMIT;
 
     const total = await Item.countDocuments({});
     const item = await Item.find()
@@ -1060,6 +1079,7 @@ module.exports = {
   addAccount,
   editAccount,
   deleteAccount,
+  getItemBySearch,
   viewItem,
   viewItemById,
   addItem,

@@ -17,6 +17,7 @@ router.post("/account", adminController.addAccount);
 router.put("/account", adminController.editAccount);
 router.delete("/account/:id", adminController.deleteAccount);
 // endpoint item
+router.get("/getItemBySearch", adminController.getItemBySearch);
 router.get("/item", adminController.viewItem);
 router.get("/itemById/:id", adminController.viewItemById);
 router.post("/item", adminController.addItem);
