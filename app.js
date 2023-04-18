@@ -8,7 +8,7 @@ const vars = require("./config/vars");
 var cors = require("cors");
 // import mongoose
 const mongoose = require("mongoose");
-mongoose.connect(vars.dbMongoDbOffline, {
+mongoose.connect(vars.dbMongoDbOnline, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useCreateIndex: true,
