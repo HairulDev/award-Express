@@ -28,6 +28,12 @@ const signin = async (req, res) => {
         success: false,
         message: "Email address not exists",
       });
+    if (oldUser.active === false)
+      return helper.errorHelper(req, res, 400, {
+        statusCode: 400,
+        success: false,
+        message: "Your account is not activated check your email verification",
+      });
 
     const isPasswordCorrect = await bcrypt.compare(password, oldUser.password);
 
@@ -95,9 +101,10 @@ const signup = async (req, res) => {
     const uploading = await genFuncController.uploadFile(file, pathFile, req, res)
 
     const result = await UserModal.create({
+      name: `${firstName} ${lastName}`,
       email,
       password: hashedPassword,
-      name: `${firstName} ${lastName}`,
+      active: false,
       file: uploading?.filenameFormatted,
     });
 
@@ -118,8 +125,8 @@ const signup = async (req, res) => {
     await verifySignUp(params, token);
 
     res.status(201).json({
-      result, token, data: uploading.data,
-      message: "You have registered successfully",
+      result, data: uploading.data,
+      message: "Check your email for verification",
     });
   } catch (error) {
     res.status(500).json({ message: "Something went wrong" });
@@ -129,13 +136,9 @@ const signup = async (req, res) => {
 const verifyReg = async (req, res) => {
   const token = decode(req.query.token);
   try {
-    const selectTable = await genFuncController.tableSelect(1);
-    const condition = { where: selectTable?.colsObj?.usr_email, value: token.usr_email };
-    const selectUser = await genFuncModel.dataSelect(selectTable.tableName, selectTable.cols, condition);
-
-    const emailUser = selectUser.usr_email;
-    if (selectUser) await authModel.activeUser(emailUser);
-
+    const userByToken = await UserModal.findOne({ email: token.email });
+    userByToken.active = true;
+    await userByToken.save();
     return helper.successHelper(req, res, 200, {
       success: true,
       message: "Your verification successfully",

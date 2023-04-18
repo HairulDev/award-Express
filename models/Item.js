@@ -16,7 +16,7 @@ const itemSchema = new mongoose.Schema({
   },
   unit: {
     type: String,
-    default: 'night'
+    default: 'Point'
   },
   categoryId: {
     type: ObjectId,
@@ -26,14 +26,6 @@ const itemSchema = new mongoose.Schema({
     type: ObjectId,
     ref: 'Image'
   },
-  likes: {
-    type: [String],
-    default: []
-  },
-  comments: {
-    type: { String },
-    default: []
-  }
 })
 
 module.exports = mongoose.model('Item', itemSchema)
