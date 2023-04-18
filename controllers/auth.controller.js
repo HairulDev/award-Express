@@ -50,10 +50,18 @@ const signin = async (req, res) => {
       id: oldUser._id
     },
       secret, { expiresIn: "1h" });
+
+    const result = {
+      _id: oldUser._id,
+      name: oldUser.name,
+      email: oldUser.email,
+      file: oldUser.file,
+    }
+
     return helper.successHelper(req, res, 200, {
       success: true,
       message: "Login successfully",
-      result: oldUser,
+      result,
       token,
     });
   } catch (error) {
@@ -79,8 +87,8 @@ const signup = async (req, res) => {
     const oldUser = await UserModal.findOne({ email });
     if (oldUser) return res.status(400).json({ message: "User already exists" });
     const hashedPassword = await bcrypt.hash(password, 12);
-    const pathFile = "public/images/users"
-    const uploading = await genFuncController.uploadFile(file, pathFile, req, res)
+    const pathFile = "users"
+    const uploading = await genFuncController.uploadFileGithub(file, pathFile, req, res)
 
     const result = await UserModal.create({
       name: `${firstName} ${lastName}`,
@@ -106,7 +114,6 @@ const signup = async (req, res) => {
     await verifySignUp(params, token);
 
     res.status(201).json({
-      result, data: uploading.data,
       message: "Check your email for verification",
     });
   } catch (error) {

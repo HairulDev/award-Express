@@ -3,23 +3,21 @@ const { email } = require("#lib/index");
 const handlebars = require("handlebars");
 const path = require("path");
 const fs = require("fs");
+const s3 = require("#lib/s3");
 const { Octokit } = require('@octokit/rest');
 const sharp = require('sharp');
 const vars = require("#config/vars");
 
 const sendEmail = async (to, from, subject, data, urlPathFile) => {
-
   let pathFile = path.join(__dirname, `../template/${urlPathFile}`);
   let readFile = fs.readFileSync(pathFile);
   let template = handlebars.compile(readFile.toString());
   let text = template(data);
-
   const mailOptionsNodeMailer = {
     to: to,
     subject: subject,
     html: text,
   };
-
   try {
     await email.send(mailOptionsNodeMailer); // nodemailer
   } catch (error) {
@@ -89,7 +87,6 @@ const uploadFileGithub = async (file, path, req, res) => {
   }
 };
 
-
 const uploadFile = async (file, path, req, res) => {
   let filenameFormatted = "";
   const extension = file.name.split(".");
@@ -147,9 +144,61 @@ const deleteFile = async (filenameFormatted, path, req, res) => {
   }
 };
 
+
+
+const uploadAWS = async (file, path) => {
+  let filenameFormatted = "";
+  const extension = file.name.split(".");
+  const ext =
+    extension.length > 1 ? "." + extension[extension.length - 1] : "";
+  filenameFormatted = `${new Date() / 1}${ext}`;
+
+  if (!file)
+    return helper.errorHelper(req, res, 400, {
+      success: false,
+      message: `Empty File`,
+    });
+
+  try {
+    // upload to s3
+    const upload = await s3.put(file.tempFilePath, `${path}/${filenameFormatted}`);
+    if (upload.status == false) {
+      return helper.errorHelper(req, res, 400, {
+        success: false,
+        message: upload.message,
+      });
+    }
+    return { filenameFormatted, upload }
+
+  } catch (error) {
+    console.error(error);
+    return error;
+  }
+};
+
+const deleteAWS = async (filenameFormatted, path) => {
+  try {
+    // upload to s3
+    const deleting = await s3.remove(`${path}/${filenameFormatted}`);
+    if (deleting.status == false) {
+      return helper.errorHelper(req, res, 400, {
+        success: false,
+        message: deleting.message,
+      });
+    }
+    return { filenameFormatted, deleting }
+
+  } catch (error) {
+    console.error(error);
+    return error;
+  }
+};
+
 module.exports = {
   sendEmail,
   uploadFile,
   deleteFile,
   uploadFileGithub,
+  uploadAWS,
+  deleteAWS,
 };

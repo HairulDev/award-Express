@@ -343,10 +343,11 @@ const deleteAccount = async (req, res) => {
   try {
     const { id } = req.params;
     const account = await UserModal.findOne({ _id: id });
-    const file = account.file;
-    const pathFile = "public/images/users"
-    await genFuncController.deleteFile(file, pathFile, req, res)
-    await account.remove();
+    const filenameFormatted = account.file;
+    const pathFile = "users"
+    await genFuncController.deleteAWS(filenameFormatted, pathFile,)
+
+    // await account.remove();
     res.status(200).json({
       success: true,
       message: "Success Delete Account",

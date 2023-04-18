@@ -20,4 +20,9 @@ module.exports = {
   ownerGithub: process.env.OWNER_GITHUB,
   repoGithub: process.env.REPO_GITHUB,
   emailCommitGithub: process.env.EMAIL_COMMIT_GITHUB,
+
+  awsAccessKey: process.env.ACCESS_KEY_AWS,
+  awsSecretKey: process.env.SECRET_KEY_AWS,
+  awsBucket: process.env.S3_BUCKET_AWS,
+  awsRegion: process.env.REGION_AWS,
 };
