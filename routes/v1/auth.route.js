@@ -4,7 +4,6 @@ const router = express.Router();
 const authController = require("#controllers/auth.controller");
 
 router.post("/auth/signin", authController.signin);
-router.post("/auth/signOut", authController.signOut);
 router.post("/auth/signup", authController.signup);
 router.get("/auth/verifyReg?:token", authController.verifyReg);
 module.exports = router;

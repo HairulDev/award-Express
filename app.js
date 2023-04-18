@@ -53,20 +53,6 @@ app.use(router);
 router.use("/v1", v1);
 
 
-app.post('/', function (req, res) {
-  const message = req.body.message;
-  wss.clients.forEach(function each(client) {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(message);
-    }
-  });
-  res.send('Message sent');
-});
-
-
-
-
-
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));

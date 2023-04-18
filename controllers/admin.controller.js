@@ -1,7 +1,7 @@
 const Category = require("../models/Category");
 const Item = require("../models/Item");
 const Image = require("../models/Image");
-const UserModal = require("../models/user");
+const UserModal = require("../models/User");
 const helper = require("#lib/response");
 const { uploadFile, deleteFile } = require("./genFunc.controller");
 const { genFuncController } = require(".");

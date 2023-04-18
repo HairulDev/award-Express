@@ -27,7 +27,6 @@ const sendEmail = async (to, from, subject, data, urlPathFile) => {
   }
 };
 
-
 const uploadFileGithub = async (file, path, req, res) => {
   try {
     if (!file) {
@@ -105,19 +104,6 @@ const uploadFile = async (file, path, req, res) => {
     });
 
   try {
-
-    // // kompresi file image menggunakan sharp
-    // const compressToBuffer = await sharp(file.tempFilePath)
-    //   .resize(800, 600)
-    //   .toFormat('jpeg')
-    //   .toBuffer();
-    // // simpan file image yang sudah dikompresi di direktori 'file.tempFilePath'
-    // await sharp(compressToBuffer).toFile(file.tempFilePath);
-    // let imageData = fs.readFileSync(file.tempFilePath);
-    // let content = imageData.toString('base64');
-
-
-
     const data = await file.mv(`${path}/${filenameFormatted}`, (err) => {
       if (err) return helper.errorHelper(req, res, 400, {
         success: false,

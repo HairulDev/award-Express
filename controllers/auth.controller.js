@@ -1,10 +1,10 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const helper = require("#lib/response");
-const UserModal = require("../models/user");
+const UserModal = require("../models/User");
 const genFuncController = require("#controllers/genFunc.controller");
 const secret = "test";
-const { frontendUrl, roleIdUser, emailTesting } = require("#config/vars");
+const { frontendUrl, emailTesting } = require("#config/vars");
 const decode = require("jwt-decode");
 
 const verifySignUp = async (params, token) => {
@@ -67,19 +67,6 @@ const signin = async (req, res) => {
   }
 };
 
-const signOut = async (req, res) => {
-  const { email } = req.body;
-  try {
-    // await genFuncModel.sessionChange("Destroy", email);
-
-    return helper.successHelper(req, res, 200, {
-      success: true,
-      message: "Your sign out successfully",
-    });
-  } catch (error) {
-    return helper.errorHelper(req, res, 500, undefined, error);
-  }
-};
 
 const signup = async (req, res) => {
   const body = req.body;
@@ -88,15 +75,10 @@ const signup = async (req, res) => {
   const file = req?.files?.file;
 
   try {
-
     if (!file) return res.status(400).json({ message: "Choose your image profile" });
-
     const oldUser = await UserModal.findOne({ email });
-
     if (oldUser) return res.status(400).json({ message: "User already exists" });
-
     const hashedPassword = await bcrypt.hash(password, 12);
-
     const pathFile = "public/images/users"
     const uploading = await genFuncController.uploadFile(file, pathFile, req, res)
 
@@ -107,7 +89,6 @@ const signup = async (req, res) => {
       active: false,
       file: uploading?.filenameFormatted,
     });
-
 
     let params = {
       to: email,
@@ -151,7 +132,6 @@ const verifyReg = async (req, res) => {
 module.exports = {
   verifySignUp,
   signin,
-  signOut,
   signup,
   verifyReg,
 };
