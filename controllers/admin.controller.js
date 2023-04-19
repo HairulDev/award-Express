@@ -222,39 +222,6 @@ const editItem = async (req, res) => {
   }
 };
 
-const showImageItem = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const item = await Item.findOne({ _id: id })
-      .populate({
-        path: "imageId",
-        select: "id imageUrl",
-      });
-    res.status(200).json({ item });
-  } catch (error) {
-    res.status(400).json(error);
-  }
-};
-
-const showEditItem = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const item = await Item.findOne({ _id: id })
-      .populate({ path: "imageId", select: "id imageUrl" })
-      .populate({ path: "categoryId", select: "id name" });
-    const category = await Category.find();
-    const users = await UserModal.find()
-      .select("_id name file")
-    res.status(200).json({
-      item,
-      users,
-      category,
-    });
-  } catch (error) {
-    res.status(400).json(error);
-  }
-};
-
 const deleteItem = async (req, res) => {
   try {
     const { id } = req.params;
@@ -334,8 +301,6 @@ module.exports = {
   viewItem,
   viewItemById,
   addItem,
-  showImageItem,
-  showEditItem,
   editItem,
   deleteItem,
   viewAccountById,
