@@ -146,9 +146,55 @@ const deleteFile = async (filenameFormatted, path, req, res) => {
 
 
 
+const uploadAWS = async (file, path, req, res) => {
+  let filenameFormatted = "";
+  const extension = file.name.split(".");
+  const ext =
+    extension.length > 1 ? "." + extension[extension.length - 1] : "";
+  filenameFormatted = `${new Date() / 1}${ext}`;
+
+  if (!file)
+    return helper.errorHelper(req, res, 400, {
+      success: false,
+      message: `Empty File`,
+    });
+
+  try {
+    // upload to s3
+    const upload = await s3.put(file.tempFilePath, `${path}/${filenameFormatted}`);
+    if (upload.status == false) {
+      return helper.errorHelper(req, res, 400, {
+        success: false,
+        message: upload.message,
+      });
+    }
+    return { filenameFormatted, upload }
+
+  } catch (error) {
+    console.error(error);
+    return error;
+  }
+};
+
+const deleteAWS = async (filenameFormatted, path, req, res) => {
+  try {
+    // upload to s3
+    const fileSource = `${path}/${filenameFormatted}`;
+    const deleting = await s3.remove(fileSource);
+
+    return { filenameFormatted, deleting }
+
+  } catch (error) {
+    console.error(error);
+    return error;
+  }
+};
+
 module.exports = {
   sendEmail,
   uploadFile,
   deleteFile,
   uploadFileGithub,
+  uploadAWS,
+  deleteAWS,
 };

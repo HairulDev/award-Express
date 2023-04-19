@@ -15,6 +15,5 @@ router.get("/item/show-image/:id", adminController.showImageItem);
 router.get("/item/:id", adminController.showEditItem);
 router.put("/item/:id", adminController.editItem);
 router.delete("/item/:id/delete", adminController.deleteItem);
-router.get("/item/show-detail-item/:itemId", adminController.viewDetailItem);
 
 module.exports = router;

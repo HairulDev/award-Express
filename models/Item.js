@@ -10,10 +10,6 @@ const itemSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
-  description: {
-    type: String,
-    required: true
-  },
   unit: {
     type: String,
     default: 'Point'
@@ -24,8 +20,8 @@ const itemSchema = new mongoose.Schema({
   },
   imageId: {
     type: ObjectId,
-    ref: 'Image'
-  },
+    ref: 'Image',
+  }
 })
 
 module.exports = mongoose.model('Item', itemSchema)

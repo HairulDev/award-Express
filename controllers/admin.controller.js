@@ -5,6 +5,7 @@ const UserModal = require("#models/user");
 const helper = require("#lib/response");
 const { uploadFile, deleteFile } = require("./genFunc.controller");
 const { genFuncController } = require(".");
+const { deleteObjectFromS3 } = require("#lib/aws-s3-client");
 
 
 const viewCategory = async (req, res) => {
@@ -132,25 +133,34 @@ const viewItemById = async (req, res) => {
 
 const addItem = async (req, res) => {
   try {
-    const { categoryId, title, price, city, description } = req.body;
+    const { categoryId, title, price, } = req.body;
     const category = await Category.findOne({ _id: categoryId });
-    const newItem = {
-      categoryId,
-      title,
-      price,
-    };
-    const item = await Item.create(newItem);
-    category.itemId.push({ _id: item._id });
-    await category.save();
 
     const file = req.files.file;
-    const path = "public/images/items";
-    const uploading = await uploadFile(file, path, req, res)
+    const path = "item/memberid";
+    const uploading = await genFuncController.uploadAWS(file, path, req, res)
 
+    if (uploading.status == false) {
+      return helper.errorHelper(req, res, 400, {
+        success: false,
+        message: uploading.message,
+      });
+    }
     const imageSave = await Image.create({
       imageUrl: uploading.filenameFormatted,
     });
-    item.imageId.push({ _id: imageSave._id });
+    const imageId = imageSave._id;
+
+    const newItem = {
+      categoryId,
+      imageId: imageId,
+      title,
+      price,
+    };
+
+    const item = await Item.create(newItem);
+    category.itemId.push({ _id: item._id });
+    await category.save();
     await item.save();
 
     res.status(200).json({
@@ -167,54 +177,36 @@ const addItem = async (req, res) => {
 const editItem = async (req, res) => {
   try {
     const { id } = req.params;
-    const { categoryId, title, price, city, description } = req.body;
+    const { categoryId, title, price, } = req.body;
     const item = await Item.findOne({ _id: id })
       .populate({ path: "imageId", select: "id imageUrl" })
       .populate({ path: "categoryId", select: "id name" });
 
     if (req.files) {
-      for (let i = 0; i < item.imageId.length; i++) {
-        const imageUpdate = await Image.findOne({ _id: item.imageId[i]._id });
+      const imageUpdate = await Image.findOne({ _id: item.imageId._id });
 
-        var filenameFormatted = imageUpdate.imageUrl;
-        const path = "public/images/items";
-        const file = deleteFile(filenameFormatted, path, req, res)
+      const path = "item/memberid";
+      await genFuncController.deleteAWS(imageUpdate.imageUrl, path, req, res)
 
-        // error delete dari aws
-        if (file.status == false) {
-          return helper.errorHelper(req, res, 400, {
-            success: false,
-            message: `Error when delete file try again`,
-          });
-        }
-
-        //aws
-        const newFile = req.files.file;
-        const upload = await uploadFile(newFile, path, req, res)
-
-        // upload attachment to s3
-        if (upload.status == false) {
-          return helper.errorHelper(req, res, 400, {
-            success: false,
-            message: upload.message,
-          });
-        }
-        //end aws
-
-        imageUpdate.imageUrl = `${filenameFormatted}`;
-        await imageUpdate.save();
+      //aws
+      const newFile = req.files.file;
+      const upload = await genFuncController.uploadAWS(newFile, path, req, res)
+      if (upload.status == false) {
+        return helper.errorHelper(req, res, 400, {
+          success: false,
+          message: upload.message,
+        });
       }
+
+      imageUpdate.imageUrl = upload.filenameFormatted;
+      await imageUpdate.save();
       item.title = title;
       item.price = price;
-      item.city = city;
-      item.description = description;
       item.categoryId = categoryId;
       await item.save();
     } else {
       item.title = title;
       item.price = price;
-      item.city = city;
-      item.description = description;
       item.categoryId = categoryId;
       await item.save();
     }
@@ -273,17 +265,8 @@ const deleteItem = async (req, res) => {
           console.log("res will be deleting", res.imageUrl);
           var filenameFormatted = res.imageUrl;
 
-          const path = "public/images/items";
-          const deleting = deleteFile(filenameFormatted, path, req, res)
-
-
-          // error delete dari aws
-          if (deleting.status == false) {
-            return helper.errorHelper(req, res, 400, {
-              success: false,
-              message: `Error when delete file try again`,
-            });
-          }
+          const path = "items/memberid";
+          genFuncController.deleteAWS(filenameFormatted, path, req, res)
           res.remove();
         })
         .catch((error) => {
@@ -302,22 +285,6 @@ const deleteItem = async (req, res) => {
     res.status(400).json(error);
   }
 };
-
-const viewDetailItem = async (req, res) => {
-  const { itemId } = req.params;
-  try {
-    const feature = await Feature.find({ itemId: itemId });
-    const activity = await Activity.find({ itemId: itemId });
-    res.status(200).json({
-      itemId,
-      feature,
-      activity,
-    });
-  } catch (error) {
-    res.status(400).json(error);
-  }
-};
-
 
 
 const viewAccountById = async (req, res) => {
@@ -344,8 +311,8 @@ const deleteAccount = async (req, res) => {
     const { id } = req.params;
     const account = await UserModal.findOne({ _id: id });
     const filenameFormatted = account.file;
-    const pathFile = "public/images/users"
-    await genFuncController.deleteFile(filenameFormatted, pathFile, req, res)
+    const pathFile = "items/memberid"
+    await genFuncController.deleteAWS(filenameFormatted, pathFile, req, res)
     await account.remove();
     res.status(200).json({
       success: true,
@@ -371,7 +338,6 @@ module.exports = {
   showEditItem,
   editItem,
   deleteItem,
-  viewDetailItem,
   viewAccountById,
   deleteAccount,
 };

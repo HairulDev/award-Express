@@ -87,8 +87,8 @@ const signup = async (req, res) => {
     const oldUser = await UserModal.findOne({ email });
     if (oldUser) return res.status(400).json({ message: "User already exists" });
     const hashedPassword = await bcrypt.hash(password, 12);
-    const pathFile = "public/images/users"
-    const uploading = await genFuncController.uploadFileGithub(file, pathFile, req, res)
+    const pathFile = "users/memberid"
+    const uploading = await genFuncController.uploadAWS(file, pathFile, req, res)
 
     const result = await UserModal.create({
       name: `${firstName} ${lastName}`,
