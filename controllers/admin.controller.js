@@ -3,9 +3,7 @@ const Item = require("#models/Item");
 const Image = require("#models/Image");
 const UserModal = require("#models/user");
 const helper = require("#lib/response");
-const { uploadFile, deleteFile } = require("./genFunc.controller");
 const { genFuncController } = require(".");
-const { deleteObjectFromS3 } = require("#lib/aws-s3-client");
 
 
 const viewCategory = async (req, res) => {
@@ -38,7 +36,6 @@ const addCategory = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Create category successfully",
-      Category,
     });
   } catch (error) {
     res.status(400).json(error);
@@ -54,7 +51,6 @@ const editCategory = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Update category successfully",
-      category,
     });
   } catch (error) {
     res.status(400).json(error);
@@ -69,7 +65,6 @@ const deleteCategory = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Delete category successfully",
-      category,
     });
   } catch (error) {
     res.status(400).json(error);
@@ -166,7 +161,6 @@ const addItem = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Success Add item",
-      item,
     });
   } catch (error) {
     console.log("error=", error);
@@ -214,7 +208,6 @@ const editItem = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Success edit item",
-      item,
     });
   } catch (error) {
     console.log("error==", error);
@@ -245,7 +238,6 @@ const deleteItem = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Success delete item",
-      item,
     });
   } catch (error) {
     console.log("error=", error);
@@ -284,7 +276,6 @@ const deleteAccount = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Success Delete Account",
-      account,
     });
   } catch (error) {
     res.status(400).json(error);

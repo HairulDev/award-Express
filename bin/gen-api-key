@@ -1,0 +1,20 @@
+#!/usr/bin/env node
+"use strict";
+require("dotenv").config();
+const jwt = require("jsonwebtoken");
+
+const DAY_EXPIRED = 3653; // 10 Years
+(function () {
+  const token = jwt.sign(
+    {
+      app: "APP NAME",
+      year: 2023,
+    },
+    process.env.SECRET_KEY,
+    {
+      expiresIn: DAY_EXPIRED * 86400,
+    }
+  );
+  console.log("API KEY:");
+  console.log(token);
+})();

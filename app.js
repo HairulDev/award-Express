@@ -4,7 +4,6 @@ var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 const fileUpload = require("express-fileupload");
 const vars = require("./config/vars");
-
 var cors = require("cors");
 // import mongoose
 const mongoose = require("mongoose");
@@ -20,6 +19,7 @@ var v1 = require("./routes/v1");
 
 // router admin
 const adminRouter = require("./routes/admin");
+const { verifyApiKey } = require("#middlewares/auth");
 
 var app = express();
 
@@ -48,6 +48,8 @@ app.use(cookieParser());
 
 // admin
 
+// API Key middleware
+app.use(verifyApiKey);
 app.use("/admin", adminRouter);
 app.use(router);
 router.use("/v1", v1);

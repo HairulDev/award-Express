@@ -25,68 +25,6 @@ const sendEmail = async (to, from, subject, data, urlPathFile) => {
   }
 };
 
-const uploadFileGithub = async (file, path, req, res) => {
-  try {
-    if (!file) {
-      return errorHelper(req, res, 400, {
-        success: false,
-        message: `Empty File`,
-      });
-    }
-    // check if the file is an image
-    if (!file.mimetype.startsWith('image/')) {
-      return res.status(400).send('Only image files are allowed.');
-    }
-
-    let filenameFormatted = "";
-    const extension = file.name.split(".");
-    const ext =
-      extension.length > 1 ? "." + extension[extension.length - 1] : "";
-    filenameFormatted = `${new Date() / 1}${ext}`
-
-
-    // kompresi file image menggunakan sharp
-    const compressToBuffer = await sharp(file.tempFilePath)
-      .resize(800, 600)
-      .toFormat('jpeg')
-      .toBuffer();
-    // simpan file image yang sudah dikompresi di direktori 'file.tempFilePath'
-    await sharp(compressToBuffer).toFile(file.tempFilePath);
-
-    let token = vars.tokenGithub;
-
-    const octokit = new Octokit({
-      auth: token
-    });
-
-    const owner = vars.ownerGithub;
-    const repo = vars.repoGithub;
-    // let imageData = fs.readFileSync(compressToFile);
-    let imageData = fs.readFileSync(file.tempFilePath);
-    let content = imageData.toString('base64');
-
-    const { data } = await octokit.request(`PUT /repos/${owner}/${repo}/contents/${path}/${filenameFormatted}`, {
-      owner,
-      repo,
-      path: path,
-      message: 'my commit message',
-      content,
-      sha: vars.shaGithub,
-      committer: {
-        name: vars.ownerGithub,
-        email: vars.emailCommitGithub,
-      },
-      headers: {
-        'X-GitHub-Api-Version': '2022-11-28'
-      }
-    }
-    );
-    return ({ filenameFormatted, data });
-  } catch (error) {
-    res.status(500).send(error);
-  }
-};
-
 const uploadFile = async (file, path, req, res) => {
   let filenameFormatted = "";
   const extension = file.name.split(".");
@@ -194,7 +132,6 @@ module.exports = {
   sendEmail,
   uploadFile,
   deleteFile,
-  uploadFileGithub,
   uploadAWS,
   deleteAWS,
 };
