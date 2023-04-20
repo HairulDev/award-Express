@@ -3,9 +3,10 @@ const jwt = require("jsonwebtoken");
 const helper = require("#lib/response");
 const UserModal = require("#models/user");
 const genFuncController = require("#controllers/genFunc.controller");
-const secret = "test";
 const { frontendUrl, emailTesting } = require("#config/vars");
 const decode = require("jwt-decode");
+const vars = require("#config/vars");
+const secret = vars.secretKey;
 
 const verifySignUp = async (params, token) => {
   const { to } = params;
