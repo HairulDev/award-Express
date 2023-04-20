@@ -49,10 +49,10 @@ app.use(cookieParser());
 // admin
 
 // API Key middleware
-app.use(verifyApiKey);
-app.use("/admin", adminRouter);
 app.use(router);
 router.use("/v1", v1);
+app.use(verifyApiKey);
+app.use("/admin", adminRouter);
 
 
 // catch 404 and forward to error handler
